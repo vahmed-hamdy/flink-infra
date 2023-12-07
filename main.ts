@@ -4,9 +4,7 @@ import { AwsProvider } from '@cdktf/provider-aws/lib/provider'
 import { IamPolicy } from '@cdktf/provider-aws/lib/iam-policy'
 import { IamRole } from '@cdktf/provider-aws/lib/iam-role'
 import { IamPolicyAttachment } from '@cdktf/provider-aws/lib/iam-policy-attachment'
-// import { ResourceType, StackResourceProvider } from './stackresourceprovider'
-import { PrivateConnectionProvider } from './resource_provider/privateconnectionprovider'
-
+import { ResourceType, StackResourceProvider } from './stackresourceprovider'
 class DDBInfra extends TerraformStack {
   constructor (scope: Construct, id: string) {
     super(scope, id)
@@ -17,23 +15,13 @@ class DDBInfra extends TerraformStack {
       region: variables.region.stringValue
     })
 
-    // Create resources for test
-    // const provider = new StackResourceProvider(this, [
-    //   // {
-    //   //   type: ResourceType.KINESIS,
-    //   //   name: 'SourceStream'
-    //   // }
-    //   {
-    //     type: ResourceType.MSK,
-    //     name: 'KafkaVVCCluster'
-    //   }
-    // ])
+    const provider = new StackResourceProvider(this, [
+      {
+        type: ResourceType.MSK,
+        name: 'KafkaVVCClusterA7a'
+      }
+    ])
 
-    const provider = new PrivateConnectionProvider(this, "tpc", {
-      vpcId: "vpc-0bca7ea45e7f85de7",
-      securityGroup: "sg-0d7d8b76e5892e999",
-      port: 6379
-    });
     this.createIamRoleWithPolicyStatements(provider.statements, variables.workspace)
   }
 

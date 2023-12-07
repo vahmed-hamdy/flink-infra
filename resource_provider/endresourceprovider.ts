@@ -1,4 +1,4 @@
-export interface ResourceProvider {
-  resource: any
+export interface ResourceProvider<Type> {
+  resource: Type
   statements: any[]
 }

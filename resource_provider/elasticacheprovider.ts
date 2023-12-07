@@ -2,11 +2,11 @@ import { type Construct } from 'constructs'
 import { type ResourceProvider } from './endresourceprovider'
 import { ElasticacheCluster } from '@cdktf/provider-aws/lib/elasticache-cluster'
 
-export class ElasticacheProvider implements ResourceProvider {
-  resource: any
+export class ElasticacheProvider implements ResourceProvider<ElasticacheCluster> {
+  resource: ElasticacheCluster
   statements: any[]
   constructor (input: Construct, name: string, configOverride?: any) {
-    new ElasticacheCluster(input, name, {
+    this.resource = new ElasticacheCluster(input, name, {
       clusterId: name,
       engine: 'redis', // currently we only support redis as this is the only connector we have
       nodeType: 'cache.t4g.micro',

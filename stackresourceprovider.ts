@@ -2,14 +2,16 @@ import { type Construct } from 'constructs'
 import { KinesisProvider } from './resource_provider/kinesisprovider'
 import { DynamoDbProvider } from './resource_provider/dynamodbprovider'
 import { S3Provider } from './resource_provider/s3bucketprovider'
-import { MSkProvider } from './resource_provider/mksprovider'
+import { MSKProvider } from './resource_provider/mksprovider'
+import { PrivateConnectionConfig, PrivateConnectionProvider } from './resource_provider/privateconnectionprovider'
 
 export enum ResourceType {
   KINESIS,
   DYNAMODB,
   S3,
   ELASTICACHE_REDIS,
-  MSK
+  MSK,
+  PRIVATE_CONNECTION
 }
 
 export interface ResourceParameters {
@@ -44,8 +46,18 @@ export class StackResourceProvider {
           break
         }
         case ResourceType.MSK: {
-          const mskProvider = new MSkProvider(construct, resource.name, resource.overrideConfigs);
+          const mskProvider = new MSKProvider(construct, resource.name, resource.overrideConfigs);
           statements = [...statements, ...mskProvider.statements]
+          break
+        }
+
+        case ResourceType.PRIVATE_CONNECTION: {
+          if(!resource.overrideConfigs != null) {
+            throw new Error("Invalid private connection configs")
+          }
+          
+          const privateConnectionProvider = new PrivateConnectionProvider(construct, resource.name, resource.overrideConfigs as PrivateConnectionConfig);
+          statements = [...statements, ...privateConnectionProvider.statements]
           break
         }
 

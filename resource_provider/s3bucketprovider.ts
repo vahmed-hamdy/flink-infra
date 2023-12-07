@@ -2,12 +2,12 @@ import { type Construct } from 'constructs'
 import { type ResourceProvider } from './endresourceprovider'
 import { S3Bucket } from '@cdktf/provider-aws/lib/s3-bucket'
 
-export class S3Provider implements ResourceProvider {
-  resource: any
+export class S3Provider implements ResourceProvider<S3Bucket> {
+  resource: S3Bucket
   statements: any[]
 
   constructor (input: Construct, name: string, configOverride?: any) {
-    new S3Bucket(input, name, {
+    this.resource = new S3Bucket(input, name, {
       bucket: name,
       forceDestroy: true,
       versioning: {

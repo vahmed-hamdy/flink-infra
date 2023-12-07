@@ -2,8 +2,8 @@ import { DynamodbTable } from '@cdktf/provider-aws/lib/dynamodb-table'
 import { type ResourceProvider } from './endresourceprovider'
 import { type Construct } from 'constructs'
 
-export class DynamoDbProvider implements ResourceProvider {
-  resource: any
+export class DynamoDbProvider implements ResourceProvider<DynamodbTable> {
+  resource: DynamodbTable
   statements: any[]
   constructor (input: Construct, name: string, configOverride?: any) {
     const table = new DynamodbTable(input, 'TestTable', {
