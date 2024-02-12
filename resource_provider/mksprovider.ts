@@ -10,11 +10,11 @@ export class MSKProvider implements ResourceProvider<MskCluster> {
   readonly statements: any[];
 
   constructor(input: Construct, name: string, configOverride?: any) {
-    const vpcConfig = (configOverride.vpcConfig as VpcConfig)?? DEFAULT_VPC_CONFIG;
+    const vpcConfig = (configOverride?.vpcConfig as VpcConfig)?? DEFAULT_VPC_CONFIG;
     const cluster = new MskCluster(input, name, {
       clusterName: name,
       kafkaVersion: configOverride?.kafkaVersion?? "3.2.0",
-      numberOfBrokerNodes:  configOverride?.numberOfBrokerNodes?? 2,
+      numberOfBrokerNodes: configOverride?.numberOfBrokerNodes?? 2,
       brokerNodeGroupInfo: {
         instanceType: "kafka.t3.small",
         clientSubnets: vpcConfig.subnetIds,

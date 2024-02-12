@@ -1,0 +1,15 @@
+{
+    "vpcId": "vpcId",
+    "securityGroup": "sg1",
+    "port": 9098,
+    "endpointsWithSubnets": [
+        {
+          "endpoint": "brokeerIp1",
+          "subnet": "subnetId1"
+        },
+        {
+          "endpoint": "brokeerIp2",
+          "subnet": "subnetId1"
+        }
+    ]
+}

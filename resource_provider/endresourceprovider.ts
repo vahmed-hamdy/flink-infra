@@ -1,4 +1,7 @@
+import { TerraformOutput } from "cdktf"
+
 export interface ResourceProvider<Type> {
   resource: Type
-  statements: any[]
+  statements: any[],
+  output?: TerraformOutput
 }

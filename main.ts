@@ -4,43 +4,109 @@ import { AwsProvider } from '@cdktf/provider-aws/lib/provider'
 import { IamPolicy } from '@cdktf/provider-aws/lib/iam-policy'
 import { IamRole } from '@cdktf/provider-aws/lib/iam-role'
 import { IamPolicyAttachment } from '@cdktf/provider-aws/lib/iam-policy-attachment'
-import { ResourceType, StackResourceProvider } from './stackresourceprovider'
-class DDBInfra extends TerraformStack {
-  constructor (scope: Construct, id: string) {
-    super(scope, id)
+import { ResourceParameters, ResourceType, StackResourceProvider } from './stackresourceprovider'
+import privateConnectionConfigurations = require('./privateConnectionConfigs.json')
+import defaultVpcConfigs = require('./vpcConfigs.json')
+function defineVariable (stack: TerraformStack): Record<string, TerraformVariable> {
+  const variableMap: Record<string, TerraformVariable> = {}
 
-    const variables = this.defineVariable()
+  variableMap.workspace = new TerraformVariable(stack, 'workspaceId', {
+    type: 'string',
+    default: 'workspaceId',
+    description: 'VVC workspace Id'
+  })
+
+  variableMap.region = new TerraformVariable(stack, 'region', {
+    type: 'string',
+    default: 'eu-central-1',
+    description: 'AWS region to create stack in'
+  })
+
+  return variableMap
+}
+
+class ResourceStack extends TerraformStack {
+  constructor (scope: Construct, id: string, props: any) {
+    super(scope, id)
+    const variables = defineVariable(this)
 
     new AwsProvider(this, 'AWS', {
       region: variables.region.stringValue
     })
 
-    const provider = new StackResourceProvider(this, [
-      {
-        type: ResourceType.MSK,
-        name: 'KafkaVVCClusterA7a'
+    let vpcProvider = undefined
+    let overrideConfigs = {}
+    if(props.createVpc) {
+      vpcProvider = new StackResourceProvider(this, [
+        {
+          type: ResourceType.VPC,
+          name: 'testVpc'
+        }
+      ]);
+      overrideConfigs = {
+        ...overrideConfigs,
+        vpcConfig: vpcProvider.outputs!.value
       }
-    ])
+    } else if(props.useDefaultVps) {
+      overrideConfigs = {
+        ...overrideConfigs,
+        vpcConfig: defaultVpcConfigs
+      }
+    }
+
+    let resources: ResourceParameters[] = [this.getResourceToCreate(props.resourceType, overrideConfigs)]
+
+    if(props.createprivateConnection) {
+      overrideConfigs = {
+        ...overrideConfigs,
+        privateConnectionConfigs: privateConnectionConfigurations 
+      }
+      resources = [...resources, {
+        type: ResourceType.PRIVATE_CONNECTION,
+        name: 'resource-pc',
+        overrideConfigs: overrideConfigs
+      }]
+    }
+
+    const provider = new StackResourceProvider(this, resources)
 
     this.createIamRoleWithPolicyStatements(provider.statements, variables.workspace)
   }
 
-  private defineVariable (): Record<string, TerraformVariable> {
-    const variableMap: Record<string, TerraformVariable> = {}
-
-    variableMap.workspace = new TerraformVariable(this, 'workspaceId', {
-      type: 'string',
-      default: 'ueeqalg5dz39hgq8',
-      description: 'VVC workspace Id'
-    })
-
-    variableMap.region = new TerraformVariable(this, 'region', {
-      type: 'string',
-      default: 'eu-central-1',
-      description: 'AWS region to create stack in'
-    })
-
-    return variableMap
+  private getResourceToCreate(resourceTypeAsString : string, overrideConfigs?: any) : ResourceParameters {
+    switch(resourceTypeAsString) {
+      case 'kinesis':
+        return {
+          type: ResourceType.KINESIS,
+          name: "cdktf-kinesis",
+          overrideConfigs: overrideConfigs
+        }
+      case 'msk':
+        return {
+          type: ResourceType.MSK,
+          name: "cdktf-msk",
+          overrideConfigs: overrideConfigs
+        }
+      case 's3':
+        return {
+          type: ResourceType.S3,
+          name: "cdktf-s3",
+          overrideConfigs: overrideConfigs
+        }
+      case 'dynamodb':
+        return {
+          type: ResourceType.DYNAMODB,
+          name: "cdktf-dynamodb",
+          overrideConfigs: overrideConfigs
+        }
+      case 'elasticache':
+      default:
+        return {
+          type: ResourceType.ELASTICACHE_REDIS,
+          name: "cdktf-elasticache-redis",
+          overrideConfigs: overrideConfigs
+        }        
+    }
   }
 
   private createIamRoleWithPolicyStatements (statements: any[], workspace: TerraformVariable) {
@@ -83,6 +149,12 @@ class DDBInfra extends TerraformStack {
   }
 }
 
+
 const app = new App()
-new DDBInfra(app, 'vvc_infra')
+new ResourceStack(app, 'vvc_infra', {
+  createVpc: true,
+  useDefaultVps: false,
+  resourceType: 'msk',
+  createPrivateConnection: true
+})
 app.synth()
