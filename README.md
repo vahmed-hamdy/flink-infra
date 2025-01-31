@@ -12,3 +12,5 @@ export AWS_SESSION_TOKEN=".............."
 - Edit `main.ts` to modify resource type of the stack and if VPC is needed to be created. 
 - setup your vpc configs in `vpcConfigs.json` and your private connection configs in `privateConnectionConfigs.json` to enable wiring of these configs.
 - run `npm run buuld` then `npm run deploy vvc_infra` or `cdktf deploy vvc_infra`
+
+
